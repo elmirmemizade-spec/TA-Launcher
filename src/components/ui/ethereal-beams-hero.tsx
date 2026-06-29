@@ -6,7 +6,8 @@ import * as THREE from "three"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { PerspectiveCamera } from "@react-three/drei"
 import { degToRad } from "three/src/math/MathUtils.js"
-import { Code2, Copy, Check, Download, MessageCircle, LogIn } from "lucide-react"
+import { Code2, Copy, Check, Download, LogIn } from "lucide-react"
+import DiscordCard from "./discord-card"
 
 // ============================================================================
 // BEAMS COMPONENT (3D Background) - unchanged
@@ -554,12 +555,7 @@ export default function EtherealBeamsHero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <a href="https://discord.gg/5EXkvEert" target="_blank" rel="noopener noreferrer">
-                <Button size="lg" className="shadow-2xl shadow-white/25 font-semibold">
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  Join Discord
-                </Button>
-              </a>
+              <DiscordCard />
               <a href="/register">
                 <Button variant="outline" size="lg" className="font-semibold bg-transparent">
                   <Download className="mr-2 h-5 w-5" />
