@@ -7,6 +7,8 @@ import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Eye, EyeOff, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 // ============================================================================
 // TYPEWRITER COMPONENT
@@ -207,28 +209,82 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 PasswordInput.displayName = "PasswordInput";
 
 // ============================================================================
+// HELPER: Get user-friendly error message
+// ============================================================================
+
+function getErrorMessage(error: any): string {
+  if (!error) return "An unexpected error occurred";
+  
+  const msg = error.message || error.error_description || error.toString();
+  
+  // Supabase auth errors
+  if (msg.includes("User already registered") || msg.includes("already exists")) {
+    return "This email is already registered. Please sign in.";
+  }
+  if (msg.includes("duplicate key") && msg.includes("username")) {
+    return "This username is already taken. Please choose another.";
+  }
+  if (msg.includes("duplicate key") && msg.includes("email")) {
+    return "This email is already registered. Please sign in.";
+  }
+  if (msg.includes("duplicate key")) {
+    return "This account already exists. Please sign in.";
+  }
+  if (msg.includes("Invalid login credentials")) {
+    return "Invalid email or password. Please try again.";
+  }
+  if (msg.includes("Email not confirmed")) {
+    return "Please check your email to confirm your account.";
+  }
+  if (msg.includes("rate limit")) {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
+  if (msg.includes("Password should be at least")) {
+    return "Password must be at least 6 characters.";
+  }
+  
+  return msg;
+}
+
+// ============================================================================
 // SIGN IN FORM
 // ============================================================================
 
 function SignInForm() {
-  const handleSignIn = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log("UI: Sign In form submitted");
-  };
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
+
+  const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError("")
+    setLoading(true)
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    
+    if (error) {
+      setError(getErrorMessage(error))
+      setLoading(false)
+    } else {
+      navigate("/")
+    }
+  }
 
   return (
     <form onSubmit={handleSignIn} autoComplete="on" className="flex flex-col gap-6">
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-sm text-red-400">{error}</div>
+      )}
       <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="email" className="text-white/70">Email</Label>
-          <Input id="email" name="email" type="email" placeholder="m@example.com" required autoComplete="email" />
+          <Input id="email" name="email" type="email" placeholder="m@example.com" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
-        <PasswordInput name="password" label="Password" required autoComplete="current-password" placeholder="Password" />
-        <Button 
-          type="submit" 
-          className="mt-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white border-0 shadow-lg shadow-blue-500/50 font-semibold"
-        >
-          Sign In
+        <PasswordInput name="password" label="Password" required autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Button type="submit" className="mt-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white border-0 shadow-lg shadow-blue-500/50 font-semibold" disabled={loading}>
+          {loading ? "Signing in..." : "Sign In"}
         </Button>
       </div>
     </form>
@@ -240,28 +296,59 @@ function SignInForm() {
 // ============================================================================
 
 function SignUpForm() {
-  const handleSignUp = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log("UI: Sign Up form submitted");
-  };
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError("")
+    setSuccess("")
+    setLoading(true)
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters")
+      setLoading(false)
+      return
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username: name } }
+    })
+
+    if (error) {
+      setError(getErrorMessage(error))
+    } else if (data.user) {
+      setSuccess("Account created successfully! You can now sign in.")
+    }
+    setLoading(false)
+  }
 
   return (
     <form onSubmit={handleSignUp} autoComplete="on" className="flex flex-col gap-6">
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-sm text-red-400">{error}</div>
+      )}
+      {success && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-sm text-emerald-400">{success}</div>
+      )}
       <div className="grid gap-4">
         <div className="grid gap-1">
-          <Label htmlFor="name" className="text-white/70">Full Name</Label>
-          <Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" />
+          <Label htmlFor="name" className="text-white/70">Username</Label>
+          <Input id="name" name="name" type="text" placeholder="Choose a username" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="email" className="text-white/70">Email</Label>
-          <Input id="email" name="email" type="email" placeholder="m@example.com" required autoComplete="email" />
+          <Input id="email" name="email" type="email" placeholder="m@example.com" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
-        <PasswordInput name="password" label="Password" required autoComplete="new-password" placeholder="Password" />
-        <Button 
-          type="submit" 
-          className="mt-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white border-0 shadow-lg shadow-blue-500/50 font-semibold"
-        >
-          Sign Up
+        <PasswordInput name="password" label="Password" required autoComplete="new-password" placeholder="Password (min 6 chars)" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Button type="submit" className="mt-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white border-0 shadow-lg shadow-blue-500/50 font-semibold" disabled={loading}>
+          {loading ? "Creating account..." : "Sign Up"}
         </Button>
       </div>
     </form>
@@ -273,6 +360,21 @@ function SignUpForm() {
 // ============================================================================
 
 function AuthFormContainer({ isSignIn, onToggle }: { isSignIn: boolean; onToggle: () => void }) {
+    const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
+
+    const handleGoogleSignIn = async () => {
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/` }
+      })
+      if (error) {
+        console.error(error)
+        setLoading(false)
+      }
+    }
+
     return (
         <div className="mx-auto grid w-[350px] gap-2">
             {isSignIn ? <SignInForm /> : <SignUpForm />}
@@ -285,7 +387,7 @@ function AuthFormContainer({ isSignIn, onToggle }: { isSignIn: boolean; onToggle
             <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-white/10">
                 <span className="relative z-10 bg-black px-2 text-white/50">Or continue with</span>
             </div>
-            <Button variant="outline" type="button" onClick={() => console.log("UI: Google button clicked")} className="border-white/10 bg-black text-white hover:bg-white/5 hover:text-white">
+            <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={loading} className="border-white/10 bg-black text-white hover:bg-white/5 hover:text-white">
                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google icon" className="mr-2 h-4 w-4" />
                 Continue with Google
             </Button>
@@ -341,7 +443,7 @@ export function AuthUI({ signInContent = {}, signUpContent = {} }: AuthUIProps) 
 
   const finalSignInContent = {
       image: { ...defaultSignInContent.image, ...signInContent.image },
-      quote: { ...defaultSignInContent.quote, ...signUpContent.quote },
+      quote: { ...defaultSignInContent.quote, ...signInContent.quote },
   };
   const finalSignUpContent = {
       image: { ...defaultSignUpContent.image, ...signUpContent.image },

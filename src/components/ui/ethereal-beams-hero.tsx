@@ -6,8 +6,9 @@ import * as THREE from "three"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { PerspectiveCamera } from "@react-three/drei"
 import { degToRad } from "three/src/math/MathUtils.js"
-import { Code2, Copy, Check, Download, LogIn } from "lucide-react"
+import { Code2, Copy, Check, Download, LogIn, LogOut } from "lucide-react"
 import DiscordCard from "./discord-card"
+import { supabase } from "@/lib/supabase"
 
 // ============================================================================
 // BEAMS COMPONENT (3D Background) - unchanged
@@ -456,7 +457,20 @@ const Button = ({ variant = "default", size = "sm", className = "", children, ..
 
 export default function EtherealBeamsHero() {
   const [copied, setCopied] = useState(false)
+  const [session, setSession] = useState<any>(null)
   const serverIP = "oyna.pixelcraft.tr"
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const copyIP = () => {
     navigator.clipboard.writeText(serverIP)
@@ -504,12 +518,25 @@ export default function EtherealBeamsHero() {
                   GitHub
                 </Button>
               </a>
-              <a href="/register">
-                <Button variant="ghost" size="sm">
-                  <LogIn className="mr-1.5 h-4 w-4" />
-                  Sign In
-                </Button>
-              </a>
+              {session ? (
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut()
+                    window.location.href = "/"
+                  }}
+                  className="inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/10 rounded-full"
+                >
+                  <LogOut className="mr-1.5 h-4 w-4" />
+                  Sign Out
+                </button>
+              ) : (
+                <a href="/register">
+                  <Button variant="ghost" size="sm">
+                    <LogIn className="mr-1.5 h-4 w-4" />
+                    Sign In
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
         </div>
