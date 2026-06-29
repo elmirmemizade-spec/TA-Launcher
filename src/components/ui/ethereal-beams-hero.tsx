@@ -479,12 +479,14 @@ export default function EtherealBeamsHero() {
         />
       </div>
 
-      {/* Glassmorphic Navbar */}
-      <nav className="relative z-20 w-full">
+      {/* Top Navbar */}
+      <nav className="absolute top-0 left-0 right-0 z-50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            {/* PixelCraft Brand - Center */}
+            {/* Left - Empty or Logo */}
             <div className="flex-1" />
+            
+            {/* Center - PixelCraft */}
             <div className="flex items-center">
               <span className="text-xl font-bold text-white tracking-wider">
                 <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
@@ -492,26 +494,28 @@ export default function EtherealBeamsHero() {
                 </span>
               </span>
             </div>
+            
+            {/* Right - Buttons */}
             <div className="flex-1 flex items-center justify-end space-x-3">
-              {/* Login Button */}
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="sm">
+                  <Code2 className="mr-1.5 h-4 w-4" />
+                  GitHub
+                </Button>
+              </a>
               <a href="/register">
                 <Button variant="ghost" size="sm">
                   <LogIn className="mr-1.5 h-4 w-4" />
-                  Login
+                  Sign In
                 </Button>
               </a>
-              {/* GitHub Button */}
-              <Button variant="ghost" size="sm" className="hidden sm:flex">
-                <Code2 className="mr-1.5 h-4 w-4" />
-                GitHub
-              </Button>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Content */}
-      <div className="relative z-10 flex min-h-[calc(100vh-4rem)] items-center">
+      <div className="relative z-10 flex min-h-screen items-center">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             {/* Badge */}
@@ -550,7 +554,7 @@ export default function EtherealBeamsHero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <a href="https://discord.gg/pixelcraft" target="_blank" rel="noopener noreferrer">
+              <a href="https://discord.gg/5EXkvEert" target="_blank" rel="noopener noreferrer">
                 <Button size="lg" className="shadow-2xl shadow-white/25 font-semibold">
                   <MessageCircle className="mr-2 h-5 w-5" />
                   Join Discord
