@@ -6,7 +6,7 @@ import * as THREE from "three"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { PerspectiveCamera } from "@react-three/drei"
 import { degToRad } from "three/src/math/MathUtils.js"
-import { Code2, Copy, Check, Download, LogIn, LogOut } from "lucide-react"
+import { Code2, Copy, Check, Download, LogIn, LogOut, Home } from "lucide-react"
 import DiscordCard from "./discord-card"
 import { supabase } from "@/lib/supabase"
 
@@ -519,16 +519,24 @@ export default function EtherealBeamsHero() {
                 </Button>
               </a>
               {session ? (
-                <button
-                  onClick={async () => {
-                    await supabase.auth.signOut()
-                    window.location.href = "/"
-                  }}
-                  className="inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/10 rounded-full"
-                >
-                  <LogOut className="mr-1.5 h-4 w-4" />
-                  Sign Out
-                </button>
+                <>
+                  <a href="/dashboard">
+                    <Button variant="ghost" size="sm">
+                      <Home className="mr-1.5 h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </a>
+                  <button
+                    onClick={async () => {
+                      await supabase.auth.signOut()
+                      window.location.href = "/"
+                    }}
+                    className="inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/10 rounded-full"
+                  >
+                    <LogOut className="mr-1.5 h-4 w-4" />
+                    Sign Out
+                  </button>
+                </>
               ) : (
                 <a href="/register">
                   <Button variant="ghost" size="sm">
@@ -583,7 +591,7 @@ export default function EtherealBeamsHero() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <DiscordCard />
-              <a href="/register">
+              <a href="/downloads">
                 <Button variant="outline" size="lg" className="font-semibold bg-transparent">
                   <Download className="mr-2 h-5 w-5" />
                   Download Launcher
